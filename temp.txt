@@ -1,0 +1,269 @@
+stock_analysis_etl/
+├── data/
+│   └── raw/
+│   └── processed/
+├── db/
+│   └── stock_data.db
+├── notebooks/
+│   └── exploratory_analysis.ipynb
+├── src/
+│   ├── etl/
+│   │   ├── __init__.py
+│   │   ├── data_extraction.py
+│   │   ├── data_transformation.py
+│   │   └── data_loading.py
+│   ├── utils/
+│   │   ├── __init__.py
+│   │   └── helpers.py
+│   └── config.py
+├── tests/
+│   ├── test_data_extraction.py
+│   ├── test_data_transformation.py
+│   └── test_data_loading.py
+├── requirements.txt
+└── run_etl_analysis.py
+
+Stock Analysis ETL Project Roadmap
+Phase 1: Data Extraction
+Task 1.1: Research and identify data sources (Google Finance, other news sites).
+Milestone: Final list of data sources.
+Task 1.2: Develop web scraping functions for Google Finance.
+Milestone: Function to fetch stock prices, news, etc.
+Task 1.3: Develop web scraping functions for additional data sources (if applicable).
+Milestone: Additional scraping functions.
+Task 1.4: Implement error handling and rate limiting.
+Milestone: Robust scraping functions.
+Phase 2: Data Transformation
+Task 2.1: Implement data cleaning functions.
+Milestone: Cleaned data.
+Task 2.2: Develop feature engineering functions (e.g., calculating moving averages).
+Milestone: Engineered features.
+Task 2.3: Implement normalization and data type conversion.
+Milestone: Normalized data ready for analysis.
+Phase 3: Data Loading
+Task 3.1: Set up the database schema.
+Milestone: Database schema ready.
+Task 3.2: Develop functions to insert data into the database.
+Milestone: Data insertion functions.
+Task 3.3: Implement batch and real-time data loading.
+Milestone: Both batch and real-time data loading capabilities.
+Phase 4: Analysis and Visualization
+Task 4.1: Develop statistical analysis functions.
+Milestone: Basic statistical analyses.
+Task 4.2: Implement machine learning models (if applicable).
+Milestone: Trained models.
+Task 4.3: Create visualizations.
+Milestone: Interactive dashboards or plots.
+Phase 5: Testing and Deployment
+Task 5.1: Write unit tests for all ETL processes.
+Milestone: Comprehensive test coverage.
+Task 5.2: Conduct performance testing.
+Milestone: Optimized code.
+Task 5.3: Deploy the project.
+Milestone: Live project.
+Phase 6: Documentation and Cleanup
+Task 6.1: Update README and documentation.
+Milestone: Completed documentation.
+Task 6.2: Code review and refactoring.
+Milestone: Clean and maintainable codebase.
+
+data_extraction.py
+from bs4 import BeautifulSoup
+import requests
+
+
+# Base URL and headers for Google Finance
+google_finance_url = 'https://www.google.com/finance/quote/{symbol}:{exchange}?hl=en'
+# Base URL for Investopedia news
+investopedia_url = 'https://www.investopedia.com/company-news-4427705'
+
+headers = {'User-Agent': 'Mozilla/5.0'}
+
+
+def make_request(url):
+    """
+    Make an HTTP request and return the content if successful.
+    """
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        return response.content
+    else:
+        print(f"Failed to retrieve {url}, status code: {response.status_code}")
+        return None
+    
+def fetch_stock_prices(symbol, exchange):
+    """
+    Fetch stock prices for a specific symbol and exchange from Google Finance.
+    """
+    url = google_finance_url.format(symbol=symbol, exchange=exchange)
+    content = make_request(url)
+    
+    if content:
+        soup = BeautifulSoup(content, 'html.parser')
+        stock_price = soup.find('div', {'class': 'YMlKec fxKbKc'}).text  # Updated class for stock price
+        return stock_price
+    else:
+        return None
+
+def fetch_financial_metrics(symbol, exchange):
+    """
+    Fetch financial metrics like Revenue, Operating Expense, etc. for a specific symbol and exchange from Google Finance.
+    """
+    url = google_finance_url.format(symbol=symbol, exchange=exchange)
+    content = make_request(url)
+    
+    if content:
+        soup = BeautifulSoup(content, 'html.parser')
+        metrics_table = soup.find('table', {'class': 'slpEwd'})
+        rows = metrics_table.find_all('tr', {'class': 'roXhBd'})
+        
+        financial_metrics = {}
+        
+        for row in rows[1:]:  # Skip the header row
+            metric_td = row.find('td', {'class': 'J9Jhg'})
+            metric_name = metric_td.find('div').text.strip()  # Isolate metric name
+            metric_value = row.find('td', {'class': 'QXDnM'}).text.strip()
+            financial_metrics[metric_name] = metric_value
+            
+        return financial_metrics
+    else:
+        return None
+    
+def fetch_investopedia_news(search_term, alias=None):
+    """
+    Fetch news articles related to the search term (and its alias) from Investopedia.
+    """
+    content = make_request(investopedia_url)
+    
+    if content:
+        soup = BeautifulSoup(content, 'html.parser')
+        cards = soup.find_all('div', {'class': 'card__content'})
+        
+        related_articles = []
+        
+        for card in cards:
+            title_elem = card.find('span', {'class': 'card__title-text'})
+            if title_elem:
+                title = title_elem.text.lower()
+                
+                if search_term.lower() in title or (alias and alias.lower() in title):
+                    article = {
+                        'title': title_elem.text,
+                        'date': card.find('span', {'class': 'displayed-date__date'}).text
+                    }
+                    related_articles.append(article)
+                    
+        return related_articles
+    else:
+        return None    
+
+# Example usage (Uncomment and replace 'AMZN' and 'NASDAQ' with actual stock symbol and exchange)
+stock_price = fetch_stock_prices('AMZN', 'NASDAQ')
+print(f"Stock Price: {stock_price}")
+financial_metrics = fetch_financial_metrics('AMZN', 'NASDAQ')
+print(f"Financial Metrics: {financial_metrics}")
+news_articles = fetch_investopedia_news('AMZN', 'Amazon')
+print(f"Related News Articles: {news_articles}")
+
+data_transformation.py
+import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
+
+
+# Function to handle missing values by filling NaNs with zeros
+def handle_missing_values(df: pd.DataFrame) -> pd.DataFrame:
+    """Replace NaN values with zeros.
+    
+    Parameters:
+        df (pd.DataFrame): The DataFrame containing the data.
+        
+    Returns:
+        pd.DataFrame: DataFrame with NaN values replaced.
+    """
+    df.fillna(0, inplace=True)
+    return df
+
+# Function to convert data types of columns
+def type_conversion(df: pd.DataFrame) -> pd.DataFrame:
+    """Convert the data types of specific columns.
+    
+    Parameters:
+        df (pd.DataFrame): The DataFrame containing the data.
+        
+    Returns:
+        pd.DataFrame: DataFrame with converted data types.
+    """
+    df['Revenue'] = df['Revenue'].astype(float)
+    return df
+
+# Function to clean string columns
+def clean_strings(df: pd.DataFrame) -> pd.DataFrame:
+    """Clean the strings in the DataFrame.
+    
+    Parameters:
+        df (pd.DataFrame): The DataFrame containing the data.
+        
+    Returns:
+        pd.DataFrame: DataFrame with cleaned strings.
+    """
+    df['Company'] = df['Company'].str.strip().str.upper()
+    return df
+
+# Function to handle outliers based on IQR
+def handle_outliers(df: pd.DataFrame, column: str) -> pd.DataFrame:
+    """Identify and remove outliers in a given column.
+    
+    Parameters:
+        df (pd.DataFrame): The DataFrame containing the data.
+        column (str): The column to check for outliers.
+        
+    Returns:
+        pd.DataFrame: DataFrame with outliers removed.
+    """
+    Q1 = df[column].quantile(0.25)
+    Q3 = df[column].quantile(0.75)
+    IQR = Q3 - Q1
+    df = df[(df[column] >= (Q1 - 1.5 * IQR)) & (df[column] <= (Q3 + 1.5 * IQR))]
+    return df
+
+# Function to normalize a column
+def normalize(df: pd.DataFrame, column: str) -> pd.DataFrame:
+    """Normalize a specific column using MinMax scaling.
+    
+    Parameters:
+        df (pd.DataFrame): The DataFrame containing the data.
+        column (str): The column to normalize.
+        
+    Returns:
+        pd.DataFrame: DataFrame with normalized column.
+    """
+    scaler = MinMaxScaler()
+    df[column] = scaler.fit_transform(df[[column]])
+    return df
+
+# Main function to clean data
+def clean_data(df: pd.DataFrame) -> pd.DataFrame:
+    """Perform all cleaning operations on the DataFrame.
+    
+    Parameters:
+        df (pd.DataFrame): The DataFrame containing the data.
+        
+    Returns:
+        pd.DataFrame: Cleaned DataFrame.
+    """
+    df = handle_missing_values(df)
+    df = type_conversion(df)
+    df = clean_strings(df)
+    df = handle_outliers(df, 'Revenue')
+    df = normalize(df, 'Revenue')
+    return df
+
+# Example usage
+if __name__ == "__main__":
+    # Mock data for example usage
+    raw_data = {'Company': ['Apple ', 'Google', 'Amazon'],
+                'Revenue': [274515.0, 161857.0, 386064.0],
+                'Profit': [57411.0, 34354.0, 74651.0]}
+    df = pd.DataFrame(raw_data)
+    cleaned_df = clean_data(df)
+    print(cleaned_df)
