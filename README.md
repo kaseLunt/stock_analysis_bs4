@@ -15,11 +15,13 @@ This Python-based project is designed to scrape real-time stock data from Google
 ## Requirements
 
 - Python 3.x
+- Flask
 - Pandas
-- BeautifulSoup
+- Scikit-learn
+- BeautifulSoup4
 - Requests
 - Logging
-
+  
 ## Installation
 
 1. Clone the repository.
