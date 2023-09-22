@@ -55,8 +55,10 @@ def handle_missing_values(df: pd.DataFrame) -> pd.DataFrame:
 # Function to convert all financial columns to numerical types
 def convert_all_to_numeric(df: pd.DataFrame, financial_columns: list) -> pd.DataFrame:
     for col in financial_columns:
+        df[col] = df[col].apply(lambda x: x if x != "—" else None) 
         df[col] = df[col].apply(convert_financial_notation)
     return df
+
 
 # Function to clean string values in the DataFrame
 def clean_strings(df: pd.DataFrame) -> pd.DataFrame:
