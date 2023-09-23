@@ -1,25 +1,52 @@
+{% load static %} {% load custom_filters %}
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Stock Dashboard</title>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{% static 'node_modules/bootstrap/dist/css/bootstrap.min.css' %}"
+    />
   </head>
-  <body>
-    <h1>Stock Dashboard</h1>
-    <table>
-      <tr>
-        <th>Symbol</th>
-        <th>Name</th>
-        <th>Stock Price</th>
-        <!-- Add more headers here -->
-      </tr>
-      {% for stock in stocks %}
-      <tr>
-        <td>{{ stock.symbol }}</td>
-        <td>{{ stock.name }}</td>
-        <td>{{ stock.stock_price }}</td>
-        <!-- Add more data fields here -->
-      </tr>
-      {% endfor %}
-    </table>
+  <body class="bg-dark text-white">
+    <div class="container mt-5">
+      <h1 class="text-center">Stock Dashboard</h1>
+      <!-- Add the 'rounded-table' class here -->
+      <table
+        class="table table-bordered table-hover table-dark rounded-table table-striped"
+      >
+        <thead>
+          <tr>
+            <th scope="col">Symbol</th>
+            <th scope="col">Name</th>
+            <th scope="col">Stock price (USD)</th>
+            <th scope="col">Revenue (Millions USD)</th>
+            <th scope="col">Operating expense (Millions USD)</th>
+            <th scope="col">Net income (Millions USD)</th>
+            <th scope="col">Net profit margin</th>
+            <th scope="col">Earnings per share (USD)</th>
+            <th scope="col">EBITDA (Millions USD)</th>
+            <th scope="col">Effective tax rate</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for stock in stocks %}
+          <tr>
+            <td>{{ stock.symbol }}</td>
+            <td>{{ stock.name }}</td>
+            <td>${{ stock.stock_price }}</td>
+            <td>${{ stock.revenue|in_millions }}</td>
+            <td>${{ stock.operating_expense|in_millions }}</td>
+            <td>${{ stock.net_income|in_millions }}</td>
+            <td>{{ stock.net_profit_margin }}%</td>
+            <td>${{ stock.earnings_per_share }}</td>
+            <td>{{ stock.ebitda|in_millions }}</td>
+            <td>{{ stock.effective_tax_rate|multiply:"100" }}%</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <script src="{% static 'node_modules/bootstrap/dist/js/bootstrap.bundle.min.js' %}"></script>
   </body>
 </html>

@@ -18,6 +18,7 @@ from dotenv import load_dotenv
 load_dotenv()
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
+SECRET_KEY = os.getenv("SECRET_KEY")
 print(DB_USER)
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -34,6 +35,12 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+STATIC_URL = '/static/'
+
+# Additional settings for static files
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "stock_app/static"),
+]
 
 # Application definition
 
