@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Stock Dashboard</title>
+  </head>
+  <body>
+    <h1>Stock Dashboard</h1>
+    <table>
+      <tr>
+        <th>Symbol</th>
+        <th>Name</th>
+        <th>Stock Price</th>
+        <!-- Add more headers here -->
+      </tr>
+      {% for stock in stocks %}
+      <tr>
+        <td>{{ stock.symbol }}</td>
+        <td>{{ stock.name }}</td>
+        <td>{{ stock.stock_price }}</td>
+        <!-- Add more data fields here -->
+      </tr>
+      {% endfor %}
+    </table>
+  </body>
+</html>
