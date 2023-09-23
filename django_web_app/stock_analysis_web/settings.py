@@ -39,7 +39,7 @@ STATIC_URL = '/static/'
 
 # Additional settings for static files
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "stock_app/static"),
+    os.path.join(BASE_DIR, "static"),
 ]
 
 # Application definition

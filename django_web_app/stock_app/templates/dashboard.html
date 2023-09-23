@@ -11,9 +11,8 @@
   <body class="bg-dark text-white">
     <div class="container mt-5">
       <h1 class="text-center">Stock Dashboard</h1>
-      <!-- Add the 'rounded-table' class here -->
       <table
-        class="table table-bordered table-hover table-dark rounded-table table-striped"
+        class="table table-bordered table-hover table-dark table-striped sortable-table"
       >
         <thead>
           <tr>
@@ -48,5 +47,7 @@
       </table>
     </div>
     <script src="{% static 'node_modules/bootstrap/dist/js/bootstrap.bundle.min.js' %}"></script>
+    {% load static %}
+    <script src="{% static 'js/table_sort.js' %}"></script>
   </body>
 </html>
