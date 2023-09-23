@@ -14,7 +14,7 @@ HEADERS = {'User-Agent': 'Mozilla/5.0'}
 
 # Determine the directory path where the script is located and specify the CSV save location
 dir_path = os.path.dirname(os.path.realpath(__file__))
-csv_file_path = os.path.join(dir_path, '../../data/raw/nasdaq_stocks.csv')
+csv_file_path = os.path.join(dir_path, '../../../data/raw/nasdaq_stocks.csv')
 
 # Function to perform HTTP requests and handle exceptions
 def make_request(url):
@@ -69,12 +69,12 @@ def fetch_financial_metrics(symbol, exchanges=['NASDAQ', 'NYSE']):
 # Main function to fetch all data for stocks listed on NASDAQ and NYSE
 def fetch_all_data_for_stocks():
     """
-    Fetch and store data for the top 100 (by market capitalization) stocks listed on NASDAQ and NYSE by market capitalization.
+    Fetch and store data for the top 10 (by market capitalization) stocks listed on NASDAQ and NYSE by market capitalization.
     """
     # Read the CSV file containing stock symbols and sort by market cap
     df = pd.read_csv(csv_file_path)
     df['Market Cap'] = df['Market Cap'].apply(pd.to_numeric, errors='coerce')
-    df = df.nlargest(100, 'Market Cap')
+    df = df.nlargest(10, 'Market Cap')
 
     # Initialize list to store stock data
     stock_data = []
